@@ -1,0 +1,586 @@
+
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simpósio EBD 2025 - Inscrição</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- XLSX para exportar para Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <!-- SweetAlert2 para notificações -->
+  <script src="https://unpkg.com/sweetalert2@11"></script>
+  <!-- iMask para máscara de campos -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/6.4.3/imask.min.js"></script>
+  <!-- Lucide para ícones -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- html2canvas e jsPDF (para geração do PDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* Ajuste opcional: para que o comprovante seja responsivo na tela (ainda que ele seja usado só para geração do PDF) */
+    @media (max-width: 640px) {
+      #receipt {
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+
+  <!-- ================================ -->
+  <!-- Template do Comprovante (oculto) -->
+  <!-- ================================ -->
+  <div id="receipt" class="hidden" style="width: 210mm;">
+    <div class="p-8 bg-white">
+      <div class="text-center mb-8">
+        <!-- Use um caminho relativo ou URL para a imagem -->
+        <img src="LOGO.jpg" alt="EBD Logo" class="w-32 h-32 mx-auto mb-4 rounded-full object-cover">
+        <h1 class="text-3xl font-bold text-gray-900">Comprovante de Inscrição</h1>
+        <p class="text-lg text-gray-600">Simpósio EBD 2025</p>
+      </div>
+      <div class="space-y-4 text-gray-700">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="font-semibold">Nome:</p>
+            <p id="receipt-name" class="text-gray-600"></p>
+          </div>
+          <div>
+            <p class="font-semibold">Email:</p>
+            <p id="receipt-email" class="text-gray-600"></p>
+          </div>
+          <div>
+            <p class="font-semibold">Congregação:</p>
+            <p id="receipt-congregation" class="text-gray-600"></p>
+          </div>
+          <div>
+            <p class="font-semibold">Grupo:</p>
+            <p id="receipt-group" class="text-gray-600"></p>
+          </div>
+          <div>
+            <p class="font-semibold">Campo:</p>
+            <p id="receipt-field" class="text-gray-600"></p>
+          </div>
+          <div>
+            <p class="font-semibold">Telefone:</p>
+            <p id="receipt-phone" class="text-gray-600"></p>
+          </div>
+          <div>
+            <p class="font-semibold">Data da Inscrição:</p>
+            <p id="receipt-date" class="text-gray-600"></p>
+          </div>
+        </div>
+        <div class="mt-8 border-t border-gray-200 pt-6">
+          <div class="flex justify-between items-center text-lg">
+            <span class="font-semibold">Valor da Inscrição:</span>
+            <span class="text-green-600 font-bold">R$ 50,00</span>
+          </div>
+          <div class="flex justify-between items-center mt-2">
+            <span class="font-semibold">Status:</span>
+            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+              PAGO
+            </span>
+          </div>
+        </div>
+        <div class="mt-12 text-center">
+          <p class="text-sm text-gray-500">Este documento é seu comprovante oficial de inscrição e pagamento.</p>
+          <p class="text-sm text-gray-500">Simpósio EBD 2025 - Todos os direitos reservados</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- Área Pública: Formulário de Inscrição -->
+  <!-- ================================ -->
+  <div class="container mx-auto px-4 py-12">
+    <div class="max-w-2xl mx-auto">
+      <!-- Cabeçalho -->
+      <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+        <div class="text-center">
+          <img src="LOGO.jpg" alt="EBD Logo" class="w-32 h-32 mx-auto mb-6 rounded-full object-cover shadow-lg ring-4 ring-blue-50">
+          <h1 class="text-4xl font-bold text-gray-900 mb-2">Simpósio EBD 2025</h1>
+          <p class="text-gray-600">Formulário de Inscrição</p>
+        </div>
+      </div>
+      <!-- Formulário -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <form id="registrationForm" class="space-y-6">
+          <div class="space-y-6">
+            <!-- Nome Completo -->
+            <div class="form-group">
+              <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
+              <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input type="text" id="name" class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+              </div>
+            </div>
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input type="email" id="email" class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+              </div>
+            </div>
+            <!-- Congregação -->
+            <div class="form-group">
+              <label for="congregation" class="block text-sm font-medium text-gray-700 mb-2">Congregação</label>
+              <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="church" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input type="text" id="congregation" class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Grupo -->
+              <div class="form-group">
+                <label for="group" class="block text-sm font-medium text-gray-700 mb-2">Grupo</label>
+                <div class="relative rounded-md shadow-sm">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-lucide="users" class="h-5 w-5 text-gray-400"></i>
+                  </div>
+                  <select id="group" class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <!-- Opções geradas via JavaScript -->
+                  </select>
+                </div>
+              </div>
+              <!-- Campo -->
+              <div class="form-group">
+                <label for="field" class="block text-sm font-medium text-gray-700 mb-2">Campo</label>
+                <div class="relative rounded-md shadow-sm">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-lucide="map-pin" class="h-5 w-5 text-gray-400"></i>
+                  </div>
+                  <input type="text" id="field" class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+                </div>
+              </div>
+            </div>
+            <!-- Telefone -->
+            <div class="form-group">
+              <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+              <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="phone" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input type="tel" id="phone" class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition-colors" required>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+            <i data-lucide="check-circle" class="h-5 w-5 mr-2"></i>
+            Realizar Inscrição
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- Modal de Pagamento -->
+  <!-- ================================ -->
+  <div id="paymentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-8 relative">
+      <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none" aria-label="Fechar">
+        <i data-lucide="x" class="h-6 w-6"></i>
+      </button>
+      <div class="text-center mb-8">
+        <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="qr-code" class="h-8 w-8 text-blue-600"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900">Pagamento PIX</h2>
+        <p class="text-gray-600 mt-1">Valor a pagar: <span class="font-semibold">R$ 50,00</span></p>
+      </div>
+      <div class="space-y-6">
+        <!-- Chave PIX -->
+        <div class="bg-gray-50 p-6 rounded-xl">
+          <h3 class="font-medium text-gray-900 mb-3">Chave PIX (Telefone):</h3>
+          <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+            <span class="font-mono text-lg">(11) 98765-4321</span>
+            <button onclick="copyPixKey()" class="text-blue-600 hover:text-blue-800 focus:outline-none" aria-label="Copiar chave PIX">
+              <i data-lucide="copy" class="h-5 w-5"></i>
+            </button>
+          </div>
+          <div class="mt-3 text-sm text-gray-600">
+            <p>Nome: João da Silva</p>
+            <p>Banco: Banco XYZ</p>
+          </div>
+        </div>
+        <!-- QR Code PIX -->
+        <div class="text-center">
+          <h3 class="font-medium text-gray-900 mb-4">QR Code PIX</h3>
+          <div class="bg-white p-4 rounded-xl inline-block shadow-sm">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266554400005204000053039865802BR5913Joao%20da%20Silva6008BRASILIA62070503***63041D3D" alt="QR Code PIX" class="w-48 h-48">
+          </div>
+        </div>
+        <!-- Upload do Comprovante -->
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="font-medium text-gray-900 mb-4">Após realizar o pagamento:</h3>
+          <div>
+            <label class="block w-full">
+              <input type="file" id="proofFile" class="hidden" accept="image/*" onchange="handleProofUpload(event)">
+              <button onclick="document.getElementById('proofFile').click()" class="w-full flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                <i data-lucide="upload" class="h-5 w-5 mr-2"></i>
+                Enviar Comprovante
+              </button>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- Botão para Acesso Administrativo -->
+  <!-- ================================ -->
+  <button id="adminAccessBtn" class="fixed top-4 right-4 bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-700 z-50">
+    Admin
+  </button>
+
+  <!-- ================================ -->
+  <!-- Área Administrativa (Sobreposição) -->
+  <!-- ================================ -->
+  <div id="adminContainer" class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-75">
+    <div class="relative h-full">
+      <button id="closeAdminBtn" class="absolute top-4 left-4 text-white bg-red-500 px-2 py-1 rounded">Fechar</button>
+      <div id="loginDiv" class="flex items-center justify-center h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <h2 class="text-2xl font-bold mb-6 text-center">Login Administrativo</h2>
+          <form id="loginForm" class="space-y-4">
+            <div>
+              <label for="username" class="block text-gray-700">Usuário:</label>
+              <input type="text" id="username" class="w-full p-2 border border-gray-300 rounded-md" required>
+            </div>
+            <div>
+              <label for="password" class="block text-gray-700">Senha:</label>
+              <input type="password" id="password" class="w-full p-2 border border-gray-300 rounded-md" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700">Entrar</button>
+          </form>
+        </div>
+      </div>
+      <div id="adminPanel" class="hidden p-8 bg-white rounded-lg mx-auto my-8 max-w-4xl">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Inscrições - Simpósio EBD 2025</h2>
+          <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Sair</button>
+        </div>
+        <div class="mb-6 flex space-x-4">
+          <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Exportar para Excel</button>
+          <button id="clearBtn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Limpar Inscrições</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+              <tr>
+                <th class="py-2 px-4 border-b">Nome</th>
+                <th class="py-2 px-4 border-b">Email</th>
+                <th class="py-2 px-4 border-b">Congregação</th>
+                <th class="py-2 px-4 border-b">Grupo</th>
+                <th class="py-2 px-4 border-b">Campo</th>
+                <th class="py-2 px-4 border-b">Telefone</th>
+                <th class="py-2 px-4 border-b">Data</th>
+                <th class="py-2 px-4 border-b">Comprovante</th>
+              </tr>
+            </thead>
+            <tbody id="registrationsTable">
+              <!-- Linhas serão inseridas via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- Scripts JavaScript -->
+  <!-- ================================ -->
+  <script>
+    // Inicializa os ícones do Lucide
+    lucide.createIcons();
+
+    // Array para inscrições (usado durante a sessão)
+    let registrations = [];
+
+    // Preenche o select "Grupo" (de 01 a 20)
+    const groupSelect = document.getElementById('group');
+    for (let i = 1; i <= 20; i++) {
+      const num = i.toString().padStart(2, '0');
+      const option = document.createElement('option');
+      option.value = num;
+      option.textContent = `Grupo ${num}`;
+      groupSelect.appendChild(option);
+    }
+
+    // Máscara para o campo de telefone
+    const phoneInput = document.getElementById('phone');
+    IMask(phoneInput, { mask: '(00) 00000-0000' });
+
+    // Submissão do formulário de inscrição
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!validateForm()) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Campos Obrigatórios',
+          text: 'Por favor, preencha todos os campos do formulário.',
+          confirmButtonColor: '#3B82F6'
+        });
+        return;
+      }
+      // Verifica se já existe inscrição com o mesmo nome (case-insensitive)
+      const nomeInput = document.getElementById('name').value.trim().toLowerCase();
+      const existingData = localStorage.getItem('registrations');
+      if (existingData) {
+        const registrationsArray = JSON.parse(existingData);
+        const duplicate = registrationsArray.find(reg => reg.name.trim().toLowerCase() === nomeInput);
+        if (duplicate) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Inscrição já realizada',
+            text: 'Uma inscrição com esse nome já foi registrada.',
+            confirmButtonColor: '#3085d6'
+          });
+          return;
+        }
+      }
+      // Exibe o modal de pagamento
+      document.getElementById('paymentModal').classList.remove('hidden');
+    });
+
+    // Validação dos campos do formulário
+    function validateForm() {
+      const requiredFields = ['name', 'email', 'congregation', 'field', 'phone'];
+      return requiredFields.every(field => document.getElementById(field).value.trim() !== '');
+    }
+
+    // Fecha o modal de pagamento
+    function closePaymentModal() {
+      document.getElementById('paymentModal').classList.add('hidden');
+    }
+
+    // Função para copiar a chave PIX
+    async function copyPixKey() {
+      try {
+        await navigator.clipboard.writeText('11987654321');
+        Swal.fire({
+          icon: 'success',
+          title: 'Chave PIX Copiada!',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      } catch (err) {
+        console.error('Erro ao copiar chave PIX:', err);
+      }
+    }
+
+    // Trata o upload do comprovante e finaliza a inscrição
+    function handleProofUpload(event) {
+      if (event.target.files?.[0]) {
+        closePaymentModal();
+        // Coleta os dados do formulário
+        const formData = {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          congregation: document.getElementById('congregation').value,
+          group: document.getElementById('group').value,
+          field: document.getElementById('field').value,
+          phone: document.getElementById('phone').value,
+          date: new Date().toLocaleString()
+        };
+        // Armazena a inscrição no array local e no localStorage
+        registrations.push(formData);
+        let allRegistrations = [];
+        const existingData = localStorage.getItem('registrations');
+        if (existingData) {
+          allRegistrations = JSON.parse(existingData);
+        }
+        allRegistrations.push(formData);
+        localStorage.setItem('registrations', JSON.stringify(allRegistrations));
+        // Atualiza o comprovante e gera o PDF (que será baixado automaticamente)
+        generateReceipt(formData);
+        generatePDF(formData);
+        Swal.fire({
+          icon: 'success',
+          title: 'Inscrição Confirmada!',
+          text: 'Seu comprovante foi gerado e baixado.',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        document.getElementById('registrationForm').reset();
+      }
+    }
+
+    // Função para gerar o PDF usando html2canvas e jsPDF
+    async function generatePDF(data) {
+      generateReceipt(data); // Atualiza o conteúdo do comprovante
+      const receipt = document.getElementById('receipt');
+      receipt.style.display = 'block'; // Exibe temporariamente para captura
+      try {
+        const canvas = await html2canvas(receipt, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 190; // largura da imagem no PDF (margens de 10mm)
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        const fileName = `comprovante_${data.name.replace(/\s+/g, '_')}.pdf`;
+        pdf.save(fileName);
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+      }
+      receipt.style.display = 'none'; // Oculta o comprovante novamente
+    }
+
+    // Atualiza o conteúdo do comprovante com os dados informados
+    function generateReceipt(data) {
+      document.getElementById('receipt-name').textContent = data.name;
+      document.getElementById('receipt-email').textContent = data.email;
+      document.getElementById('receipt-congregation').textContent = data.congregation;
+      document.getElementById('receipt-group').textContent = `Grupo ${data.group}`;
+      document.getElementById('receipt-field').textContent = data.field;
+      document.getElementById('receipt-phone').textContent = data.phone;
+      document.getElementById('receipt-date').textContent = data.date;
+    }
+  </script>
+
+  <script>
+    // Área Administrativa
+    const ADMIN_USER = 'admin';
+    const ADMIN_PASS = 'ebd1234';
+
+    document.getElementById('adminAccessBtn').addEventListener('click', function() {
+      document.getElementById('adminContainer').classList.remove('hidden');
+    });
+
+    document.getElementById('closeAdminBtn').addEventListener('click', function() {
+      document.getElementById('adminContainer').classList.add('hidden');
+      document.getElementById('loginDiv').classList.remove('hidden');
+      document.getElementById('adminPanel').classList.add('hidden');
+      document.getElementById('loginForm').reset();
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (username === ADMIN_USER && password === ADMIN_PASS) {
+        document.getElementById('loginDiv').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        loadRegistrations();
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Acesso Negado',
+          text: 'Usuário ou senha incorretos!',
+          confirmButtonColor: '#3085d6'
+        });
+      }
+    });
+
+    function loadRegistrations() {
+      const registrationsData = localStorage.getItem('registrations');
+      let registrations = [];
+      if (registrationsData) {
+        registrations = JSON.parse(registrationsData);
+      }
+      const tableBody = document.getElementById('registrationsTable');
+      tableBody.innerHTML = '';
+      if (registrations.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Nenhuma inscrição encontrada.</td></tr>';
+      } else {
+        registrations.forEach((reg, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="py-2 px-4 border-b">${reg.name || ''}</td>
+            <td class="py-2 px-4 border-b">${reg.email || ''}</td>
+            <td class="py-2 px-4 border-b">${reg.congregation || ''}</td>
+            <td class="py-2 px-4 border-b">${reg.group ? ('Grupo ' + reg.group) : ''}</td>
+            <td class="py-2 px-4 border-b">${reg.field || ''}</td>
+            <td class="py-2 px-4 border-b">${reg.phone || ''}</td>
+            <td class="py-2 px-4 border-b">${reg.date || ''}</td>
+            <td class="py-2 px-4 border-b">
+              <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" onclick="downloadReceipt(${index})">
+                Baixar Comprovante
+              </button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      document.getElementById('adminPanel').classList.add('hidden');
+      document.getElementById('loginDiv').classList.remove('hidden');
+      document.getElementById('loginForm').reset();
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', function() {
+      const registrationsData = localStorage.getItem('registrations');
+      let registrations = [];
+      if (registrationsData) {
+        registrations = JSON.parse(registrationsData);
+      }
+      if (registrations.length === 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sem Inscrições',
+          text: 'Nenhuma inscrição foi encontrada para exportação.',
+          confirmButtonColor: '#3085d6'
+        });
+        return;
+      }
+      const ws = XLSX.utils.json_to_sheet(registrations);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Inscrições");
+      XLSX.writeFile(wb, "inscricoes_simposio_ebd_2025.xlsx");
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', function() {
+      Swal.fire({
+        title: 'Tem certeza?',
+        text: "Isso irá apagar todas as inscrições!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, apagar!',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          localStorage.removeItem('registrations');
+          loadRegistrations();
+          Swal.fire({
+            icon: 'success',
+            title: 'Inscrições apagadas!',
+            text: 'Todas as inscrições foram removidas.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+      });
+    });
+
+    function downloadReceipt(index) {
+      const registrationsData = localStorage.getItem('registrations');
+      let registrations = [];
+      if (registrationsData) {
+        registrations = JSON.parse(registrationsData);
+      }
+      const data = registrations[index];
+      if (data) {
+        generatePDF(data);
+      }
+    }
+  </script>
+</body>
+</html>
