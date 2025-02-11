@@ -14,11 +14,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/6.4.3/imask.min.js"></script>
   <!-- Lucide para ícones -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- html2canvas e jsPDF (para geração do PDF) -->
+  <!-- html2canvas e jsPDF para gerar PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    /* Ajuste opcional: para que o comprovante seja responsivo na tela (ainda que ele seja usado só para geração do PDF) */
+    /* Se necessário, ajuste responsividade do comprovante (usado só para gerar o PDF) */
     @media (max-width: 640px) {
       #receipt {
         width: 100% !important;
@@ -77,9 +77,7 @@
           </div>
           <div class="flex justify-between items-center mt-2">
             <span class="font-semibold">Status:</span>
-            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-              PAGO
-            </span>
+            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">PAGO</span>
           </div>
         </div>
         <div class="mt-12 text-center">
@@ -177,6 +175,12 @@
             Realizar Inscrição
           </button>
         </form>
+        <!-- Botão para Baixar Comprovante (inicialmente oculto) -->
+        <div id="downloadContainer" class="hidden text-center mt-4">
+          <button id="downloadReceiptBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">
+            Baixar Comprovante
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -303,8 +307,9 @@
     // Inicializa os ícones do Lucide
     lucide.createIcons();
 
-    // Array para inscrições (usado durante a sessão)
+    // Variável para armazenar inscrições da sessão e a última inscrição realizada
     let registrations = [];
+    let lastRegistration = null;
 
     // Preenche o select "Grupo" (de 01 a 20)
     const groupSelect = document.getElementById('group');
@@ -395,8 +400,9 @@
           phone: document.getElementById('phone').value,
           date: new Date().toLocaleString()
         };
-        // Armazena a inscrição no array local e no localStorage
+        // Armazena a inscrição tanto no array local quanto no localStorage
         registrations.push(formData);
+        lastRegistration = formData;  // Guarda a última inscrição para o download do comprovante
         let allRegistrations = [];
         const existingData = localStorage.getItem('registrations');
         if (existingData) {
@@ -404,13 +410,14 @@
         }
         allRegistrations.push(formData);
         localStorage.setItem('registrations', JSON.stringify(allRegistrations));
-        // Atualiza o comprovante e gera o PDF (que será baixado automaticamente)
+        // Atualiza o conteúdo do comprovante
         generateReceipt(formData);
-        generatePDF(formData);
+        // Exibe o botão de download para o usuário
+        document.getElementById('downloadContainer').classList.remove('hidden');
         Swal.fire({
           icon: 'success',
           title: 'Inscrição Confirmada!',
-          text: 'Seu comprovante foi gerado e baixado.',
+          text: 'Clique no botão "Baixar Comprovante" para salvar seu comprovante.',
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true
@@ -429,7 +436,7 @@
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgWidth = 190; // largura da imagem no PDF (margens de 10mm)
+        const imgWidth = 190; // Largura da imagem no PDF (margens de 10mm)
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
         const fileName = `comprovante_${data.name.replace(/\s+/g, '_')}.pdf`;
@@ -437,7 +444,7 @@
       } catch (error) {
         console.error('Erro ao gerar PDF:', error);
       }
-      receipt.style.display = 'none'; // Oculta o comprovante novamente
+      receipt.style.display = 'none'; // Oculta novamente o comprovante
     }
 
     // Atualiza o conteúdo do comprovante com os dados informados
@@ -450,6 +457,13 @@
       document.getElementById('receipt-phone').textContent = data.phone;
       document.getElementById('receipt-date').textContent = data.date;
     }
+
+    // Configura o botão de download do comprovante para o usuário
+    document.getElementById('downloadReceiptBtn').addEventListener('click', function() {
+      if (lastRegistration) {
+        generatePDF(lastRegistration);
+      }
+    });
   </script>
 
   <script>
